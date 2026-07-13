@@ -1,0 +1,52 @@
+# HoneyJam malware / IOC signatures.
+# Each signature is matched (case-insensitive substring or regex) against
+# registry value data and key names.
+signatures:
+  - id: mal.cobaltstrike.beacon
+    name: Cobalt Strike beacon artifact
+    severity: critical
+    match: regex
+    patterns:
+      - "MSSE-[0-9a-f]{4}-server"
+      - "\\\\pipe\\\\msagent_"
+
+  - id: mal.emotet.run
+    name: Emotet-style autostart hash name
+    severity: high
+    match: regex
+    patterns:
+      - "\\\\AppData\\\\Local\\\\[a-z]{6,12}\\\\[a-z]{6,12}\\.exe"
+
+  - id: mal.generic.suspicious_ext
+    name: Autostart to script/screensaver extension
+    severity: medium
+    match: regex
+    patterns:
+      - "\\.(scr|pif|hta|vbs|js|jse|wsf)(\"|\\s|$)"
+
+  - id: mal.lolbin.powershell_download
+    name: PowerShell download cradle
+    severity: high
+    match: regex
+    patterns:
+      - "Net\\.WebClient"
+      - "DownloadString"
+      - "DownloadFile"
+      - "Invoke-WebRequest"
+
+  - id: mal.ransomware.marker
+    name: Common ransomware marker
+    severity: critical
+    match: substring
+    patterns:
+      - "vssadmin delete shadows"
+      - "wbadmin delete catalog"
+      - "bcdedit /set {default} recoveryenabled no"
+
+heuristics:
+  disabled_security_service:
+    severity: high
+    description: A security service (Defender, firewall, event log) is disabled.
+  cleared_eventlog:
+    severity: high
+    description: Event log configuration indicates logs were cleared or disabled.
