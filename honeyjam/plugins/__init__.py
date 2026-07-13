@@ -56,6 +56,9 @@ def discover_plugins(force: bool = False) -> dict[str, Plugin]:
                 issubclass(obj, Plugin)
                 and obj is not Plugin
                 and obj.__module__ == module.__name__
+                # skip abstract intermediates that don't declare their own name
+                and "name" in obj.__dict__
+                and obj.name != Plugin.name
             ):
                 instance = obj()
                 registry[instance.name] = instance

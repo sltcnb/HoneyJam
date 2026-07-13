@@ -146,14 +146,21 @@ class Hive:
         return RegKey(self._hive.root, "\\")
 
     def control_set_path(self, subpath: str) -> str:
-        """Build a path under the *current* control set (SYSTEM hives)."""
+        """Build a path under the *current* control set (SYSTEM hives).
+
+        ``subpath`` may be given with or without a leading backslash, e.g.
+        ``"\\Services"`` or ``"Services"``.
+        """
+        rel = subpath.lstrip("\\")
         try:
-            csets = self._hive.get_control_sets(subpath)
+            # regipy expects the path *without* a leading backslash and returns
+            # e.g. ["\\ControlSet001\\\\Services", ...]; normalise doubles.
+            csets = self._hive.get_control_sets(rel)
             if csets:
-                return csets[0]
+                return csets[0].replace("\\\\", "\\")
         except Exception:
             pass
-        return f"\\ControlSet001{subpath}"
+        return f"\\ControlSet001\\{rel}"
 
     def recurse(self, path: str = "\\") -> Iterator[RegKey]:
         """Depth-first iterate every key at or below ``path``."""

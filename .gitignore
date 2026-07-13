@@ -32,3 +32,6 @@ htmlcov/
 *.honeyjam.json
 reports/
 *.ecs.json
+
+# Local sample hives (not committed - unclear license)
+examples/hives/

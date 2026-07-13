@@ -101,13 +101,15 @@ def cli() -> None:
 def parse(hive, as_json, as_ecs, as_csv, html):
     """Run all applicable plugins against a single HIVE."""
     h = _open(hive)
-    console.print(
-        Panel.fit(
-            f"[bold]{os.path.basename(hive)}[/]  type=[cyan]{h.hive_type}[/]",
-            title="HoneyJam parse",
-            border_style="#f5a623",
+    machine = as_json or as_ecs or as_csv
+    if not machine:
+        console.print(
+            Panel.fit(
+                f"[bold]{os.path.basename(hive)}[/]  type=[cyan]{h.hive_type}[/]",
+                title="HoneyJam parse",
+                border_style="#f5a623",
+            )
         )
-    )
     results = run_all(h)
 
     if as_json:

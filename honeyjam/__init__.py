@@ -3,7 +3,7 @@
 A spiritual successor to RegRipper, built on top of the ``regipy`` parser.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "sltcnb"
 
 from honeyjam.models import Finding, PluginResult, Severity

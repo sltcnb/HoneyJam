@@ -6,7 +6,7 @@ import datetime as _dt
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 class Severity(str, Enum):
@@ -44,6 +44,13 @@ class Finding(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
     model_config = {"use_enum_values": False}
+
+    @field_serializer("value_data")
+    def _serialize_value_data(self, value: Any, _info):
+        """Ensure binary / non-JSON-safe data survives serialization."""
+        if isinstance(value, (bytes, bytearray)):
+            return value.hex()
+        return value
 
 
 class PluginResult(BaseModel):

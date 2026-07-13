@@ -2,30 +2,10 @@
 
 from __future__ import annotations
 
-import datetime as _dt
-import struct
-
 from honeyjam.models import Finding, PluginResult, Severity
 from honeyjam.parser.hive import Hive
+from honeyjam.parser.util import decode_utf16, filetime_to_dt
 from honeyjam.plugins import Plugin
-
-
-def _decode_shutdown_time(data) -> _dt.datetime | None:
-    """ShutdownTime is a little-endian FILETIME stored as REG_BINARY."""
-    try:
-        if isinstance(data, (bytes, bytearray)) and len(data) >= 8:
-            filetime = struct.unpack("<Q", bytes(data[:8]))[0]
-        elif isinstance(data, int):
-            filetime = data
-        else:
-            return None
-        if filetime == 0:
-            return None
-        # FILETIME: 100ns intervals since 1601-01-01 UTC
-        epoch = _dt.datetime(1601, 1, 1, tzinfo=_dt.timezone.utc)
-        return epoch + _dt.timedelta(microseconds=filetime / 10)
-    except Exception:
-        return None
 
 
 class SystemInfoPlugin(Plugin):
@@ -64,15 +44,16 @@ class SystemInfoPlugin(Plugin):
         if tz is not None:
             val = tz.get_value("TimeZoneKeyName") or tz.get_value("StandardName")
             if val is not None:
+                tz_name = decode_utf16(val.data) or str(val.data)
                 result.add(
                     Finding(
-                        title=f"Timezone: {val.data}",
+                        title=f"Timezone: {tz_name}",
                         description="System timezone configuration",
                         severity=Severity.INFO,
                         confidence=90,
                         registry_key=tz_path,
                         value_name=val.name,
-                        value_data=val.data,
+                        value_data=tz_name,
                         value_type=val.value_type,
                         timestamp=tz.last_written,
                         tags=["system", "timezone"],
@@ -85,7 +66,7 @@ class SystemInfoPlugin(Plugin):
         if sd is not None:
             val = sd.get_value("ShutdownTime")
             if val is not None:
-                ts = _decode_shutdown_time(val.data)
+                ts = filetime_to_dt(val.data)
                 result.add(
                     Finding(
                         title=f"Last shutdown: {ts.isoformat() if ts else 'unknown'}",

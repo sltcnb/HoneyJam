@@ -71,13 +71,41 @@ honeyjam info
 
 ## Plugins
 
-| Plugin        | Hives            | Purpose                                                       |
-|---------------|------------------|--------------------------------------------------------------|
-| `persistence` | software, ntuser | Run/RunOnce autostart keys + suspicious-command heuristics   |
-| `services`    | system           | Services enumeration, suspicious ImagePath, disabled security services |
-| `usbstor`     | system           | USB storage device history (USBSTOR)                         |
-| `system_info` | system           | Computer name, timezone, last shutdown time                 |
-| `userassist`  | ntuser           | UserAssist program-execution history (ROT13 decoded)        |
+25 plugins ship in the box (`honeyjam plugins list`). Extraction for several
+artifacts is backed by the battle-tested `regipy` plugin library, wrapped in
+HoneyJam's `Finding` / severity / timeline model with added IOC heuristics.
+
+| Plugin                | Hives            | Purpose                                                       |
+|-----------------------|------------------|--------------------------------------------------------------|
+| `persistence`         | software, ntuser | Run/RunOnce autostart keys + suspicious-command heuristics   |
+| `services`            | system           | Services enumeration, suspicious ImagePath, disabled security services |
+| `shimcache`           | system           | AppCompatCache / ShimCache execution evidence                |
+| `amcache`             | amcache          | Amcache execution / file-presence evidence (SHA1, paths)     |
+| `bam`                 | system           | Background Activity Moderator (BAM/DAM) last-run times        |
+| `usbstor`             | system           | USB mass-storage device history                              |
+| `usb_devices`         | system           | Broader USB device enumeration (Enum\\USB)                   |
+| `mounted_devices`     | system           | MountedDevices - drive letters / volumes to device IDs       |
+| `network_interfaces`  | system           | TCP/IP interface configuration                              |
+| `environment`         | system           | System-wide environment variables (+ heuristics)             |
+| `system_info`         | system           | Computer name, timezone, last shutdown time                 |
+| `userassist`          | ntuser           | UserAssist program-execution history (ROT13 decoded)        |
+| `recentdocs`          | ntuser           | RecentDocs recently opened files/folders                    |
+| `runmru`              | ntuser           | RunMRU - commands typed into the Run dialog                  |
+| `opensave_mru`        | ntuser           | ComDlg32 OpenSave / LastVisited PIDL MRU                     |
+| `typedpaths`          | ntuser           | Explorer address-bar typed paths                            |
+| `typedurls`           | ntuser           | Internet Explorer / Edge legacy typed URLs                  |
+| `rdp_connections`     | ntuser           | Terminal Server Client outbound RDP history                 |
+| `shellbags_ntuser`    | ntuser           | ShellBags folder-access history (needs `pyfwsi`)             |
+| `shellbags_usrclass`  | usrclass         | ShellBags folder-access history (needs `pyfwsi`)             |
+| `installed_programs`  | software         | Installed programs from Uninstall keys                      |
+| `profilelist`         | software         | ProfileList - SID to user profile mapping                   |
+| `network_list`        | software         | Known networks / WiFi profiles                              |
+| `build_info`          | software         | Windows version / build / install date                      |
+| `uac_status`          | software         | UAC configuration (flags weakened settings)                 |
+
+> ShellBags parsing relies on the optional `pyfwsi` binding. When it is absent
+> the plugins degrade gracefully (empty finding set, reason recorded in the
+> plugin's `errors`).
 
 ## ECS output example
 
@@ -117,7 +145,9 @@ the full plugin -> analysis -> export pipeline using an in-memory fake hive.
 
 ## Roadmap
 
-- 100+ plugins (Amcache, ShimCache, BAM/DAM, ShellBags, SAM users, network profiles, ...)
+- 100+ plugins (SAM users, ShimCacheParser refinements, AppInit/IFEO, LSA,
+  WDigest cleartext, wsl, PuTTY/WinSCP saved sessions, prefetch settings, ...)
+- First-class ShellBags without external native bindings
 - Transaction-log (`.LOG1`/`.LOG2`) replay for dirty hives
 - Live-system analysis mode
 - Web UI + REST API and containerized/K8s deployment
