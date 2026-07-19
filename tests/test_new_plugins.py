@@ -7,13 +7,9 @@ entry -> Finding mapping, heuristics enrichment and timeline timestamps.
 
 import datetime as _dt
 
-import pytest
-
-from honeyjam.parser.hive import RegValue
 from honeyjam.models import Severity
-from honeyjam.plugins import discover_plugins, get_plugin, get_plugins, get_plugins_for_hive
+from honeyjam.plugins import get_plugins, get_plugins_for_hive
 from honeyjam.plugins.amcache import AmcachePlugin
-from honeyjam.plugins.bam import BamPlugin
 from honeyjam.plugins.environment import EnvironmentPlugin
 from honeyjam.plugins.installed_programs import InstalledProgramsPlugin
 from honeyjam.plugins.mru import RunMruPlugin

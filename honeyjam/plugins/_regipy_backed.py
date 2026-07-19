@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import importlib
-from typing import Callable, Optional
+from typing import Optional
 
 from honeyjam.analysis.heuristics import analyze_command
 from honeyjam.models import Finding, PluginResult, Severity
