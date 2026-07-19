@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import glob
 import os
 import sys
 
@@ -46,7 +45,7 @@ def _open(path: str):
         return open_hive(path)
     except Exception as exc:
         console.print(f"[red]Failed to open hive:[/] {path}\n{exc}")
-        raise SystemExit(2)
+        raise SystemExit(2) from exc
 
 
 def _collect_hives(target: str) -> list[str]:
@@ -96,12 +95,13 @@ def cli() -> None:
 @click.argument("hive", type=click.Path(exists=True, dir_okay=False))
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON to stdout.")
 @click.option("--ecs", "as_ecs", is_flag=True, help="Emit ECS JSON to stdout.")
+@click.option("--ndjson", "as_ndjson", is_flag=True, help="Emit ECS newline-delimited JSON (NDJSON) to stdout.")
 @click.option("--csv", "as_csv", is_flag=True, help="Emit CSV to stdout.")
 @click.option("--html", type=click.Path(dir_okay=False), help="Write HTML report to path.")
-def parse(hive, as_json, as_ecs, as_csv, html):
+def parse(hive, as_json, as_ecs, as_ndjson, as_csv, html):
     """Run all applicable plugins against a single HIVE."""
     h = _open(hive)
-    machine = as_json or as_ecs or as_csv
+    machine = as_json or as_ecs or as_ndjson or as_csv
     if not machine:
         console.print(
             Panel.fit(
@@ -117,6 +117,9 @@ def parse(hive, as_json, as_ecs, as_csv, html):
         return
     if as_ecs:
         click.echo(ecs.to_ecs_json(results))
+        return
+    if as_ndjson:
+        click.echo(ecs.to_ndjson(results))
         return
     if as_csv:
         click.echo(report.to_csv(results))
