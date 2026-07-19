@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from honeyjam.models import Severity
 from honeyjam.plugins._regipy_backed import RegipyBackedPlugin, _first
 
 

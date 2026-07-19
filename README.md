@@ -1,5 +1,6 @@
 # HoneyJam
 
+[![CI](https://github.com/sltcnb/HoneyJam/actions/workflows/ci.yml/badge.svg)](https://github.com/sltcnb/HoneyJam/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![status](https://img.shields.io/badge/status-alpha-orange)
@@ -49,6 +50,7 @@ honeyjam parse SOFTWARE
 honeyjam parse NTUSER.DAT --json
 honeyjam parse SYSTEM --html report.html
 honeyjam parse SOFTWARE --ecs        # ECS JSON to stdout
+honeyjam parse SOFTWARE --ndjson     # ECS NDJSON (one doc per line) to stdout
 honeyjam parse SOFTWARE --csv
 
 # Malware / IOC detection over a hive or a whole directory of hives
@@ -142,6 +144,13 @@ python -m pytest        # tests run fully offline (no real hive required)
 
 Tests unit-check the heuristics, IOC scoring, ECS mapping, plugin discovery and
 the full plugin -> analysis -> export pipeline using an in-memory fake hive.
+
+```bash
+ruff check honeyjam tests   # lint (config in pyproject.toml)
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add a plugin and open a PR,
+and [SECURITY.md](SECURITY.md) for how to report a vulnerability.
 
 ## Roadmap
 

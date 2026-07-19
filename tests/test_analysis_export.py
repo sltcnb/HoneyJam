@@ -1,9 +1,10 @@
+import datetime as dt
 import json
 
 from honeyjam.analysis import malware_detector
 from honeyjam.analysis.timeline import build_timeline
 from honeyjam.export import ecs, report
-from honeyjam.models import Severity
+from honeyjam.models import Finding, PluginResult, Severity
 from honeyjam.plugins import run_all
 
 
@@ -69,3 +70,45 @@ def test_timeline_sorted(system_hive):
     events = build_timeline(results)
     ts = [e.timestamp for e in events]
     assert ts == sorted(ts)
+
+
+def test_timeline_sorts_mixed_naive_and_aware_timestamps():
+    """regipy plugins often hand back naive datetimes while other plugins
+    always attach UTC tzinfo; build_timeline must not raise when the two
+    are mixed and must still order events correctly (naive timestamps are
+    treated as UTC).
+    """
+    results = [
+        PluginResult(
+            plugin="aware_plugin",
+            findings=[
+                Finding(
+                    title="middle-aware",
+                    timestamp=dt.datetime(2023, 6, 15, tzinfo=dt.timezone.utc),
+                ),
+                Finding(
+                    title="latest-aware",
+                    timestamp=dt.datetime(2024, 1, 1, tzinfo=dt.timezone.utc),
+                ),
+            ],
+        ),
+        PluginResult(
+            plugin="naive_regipy_plugin",
+            findings=[
+                Finding(title="earliest-naive", timestamp=dt.datetime(2020, 1, 1)),
+                Finding(title="another-naive", timestamp=dt.datetime(2022, 3, 3)),
+            ],
+        ),
+    ]
+
+    events = build_timeline(results)  # must not raise TypeError
+
+    assert [e.description for e in events] == [
+        "earliest-naive",
+        "another-naive",
+        "middle-aware",
+        "latest-aware",
+    ]
+    # every timestamp is normalized to timezone-aware UTC
+    assert all(e.timestamp.tzinfo is not None for e in events)
+    assert all(e.timestamp.utcoffset() == dt.timedelta(0) for e in events)

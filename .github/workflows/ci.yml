@@ -5,8 +5,28 @@ on:
     branches: [main, master]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: python -m pip install --upgrade pip ruff
+      - name: Ruff lint
+        run: ruff check honeyjam tests
+
   test:
+    needs: lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,7 +47,7 @@ jobs:
           pip install -e .[dev]
 
       - name: Run tests
-        run: python -m pytest -q
+        run: python -m pytest -q --cov=honeyjam --cov-report=term-missing
 
       - name: CLI smoke test
         run: |

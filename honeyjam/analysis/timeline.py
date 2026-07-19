@@ -28,6 +28,22 @@ class TimelineEvent:
         }
 
 
+def _as_aware_utc(timestamp: _dt.datetime) -> _dt.datetime:
+    """Normalize a datetime to timezone-aware UTC.
+
+    Registry parsing backends are inconsistent about timezone info: some
+    (e.g. regipy plugins that hand back naive ``datetime.fromisoformat``
+    results) produce naive datetimes, while others always attach UTC
+    tzinfo. Sorting a mix of the two raises ``TypeError``, so every
+    timestamp is normalized here before it is ever compared. Naive values
+    are assumed to already represent UTC (regipy/registry timestamps are
+    UTC in practice) rather than the local timezone.
+    """
+    if timestamp.tzinfo is None:
+        return timestamp.replace(tzinfo=_dt.timezone.utc)
+    return timestamp.astimezone(_dt.timezone.utc)
+
+
 def build_timeline(results: list[PluginResult]) -> list[TimelineEvent]:
     """Flatten findings that carry a timestamp into a sorted timeline."""
     events: list[TimelineEvent] = []
@@ -37,7 +53,7 @@ def build_timeline(results: list[PluginResult]) -> list[TimelineEvent]:
                 continue
             events.append(
                 TimelineEvent(
-                    timestamp=finding.timestamp,
+                    timestamp=_as_aware_utc(finding.timestamp),
                     source=finding.plugin or res.plugin,
                     description=finding.title,
                     registry_key=finding.registry_key,
@@ -52,7 +68,7 @@ def build_timeline(results: list[PluginResult]) -> list[TimelineEvent]:
 def timeline_from_findings(findings: list[Finding], source: str = "honeyjam") -> list[TimelineEvent]:
     events = [
         TimelineEvent(
-            timestamp=f.timestamp,
+            timestamp=_as_aware_utc(f.timestamp),
             source=f.plugin or source,
             description=f.title,
             registry_key=f.registry_key,

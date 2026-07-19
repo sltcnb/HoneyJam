@@ -1,12 +1,11 @@
+from honeyjam.models import Severity
 from honeyjam.plugins import (
     discover_plugins,
-    get_plugin,
     get_plugins_for_hive,
     run_all,
 )
 from honeyjam.plugins.persistence import PersistencePlugin
 from honeyjam.plugins.services import ServicesPlugin
-from honeyjam.models import Severity
 
 
 def test_discovery_finds_core_plugins():
